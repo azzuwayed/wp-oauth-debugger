@@ -1,0 +1,14 @@
+/vendor/
+/node_modules/
+.DS_Store
+*.log
+*.cache
+.env
+.env.*
+!.env.example
+composer.lock
+package-lock.json
+.phpunit.result.cache
+coverage/
+build/
+dist/ 

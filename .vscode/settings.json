@@ -1,0 +1,220 @@
+{
+    // PHP and WordPress Development Settings
+    "intelephense.stubs": [
+        "apache",
+        "bcmath",
+        "bz2",
+        "calendar",
+        "com_dotnet",
+        "Core",
+        "ctype",
+        "curl",
+        "date",
+        "dba",
+        "dom",
+        "enchant",
+        "exif",
+        "FFI",
+        "fileinfo",
+        "filter",
+        "fpm",
+        "ftp",
+        "gd",
+        "gettext",
+        "gmp",
+        "hash",
+        "iconv",
+        "imap",
+        "interbase",
+        "intl",
+        "json",
+        "ldap",
+        "libxml",
+        "mbstring",
+        "meta",
+        "mysqli",
+        "oci8",
+        "odbc",
+        "openssl",
+        "pgsql",
+        "Phar",
+        "posix",
+        "pspell",
+        "readline",
+        "Reflection",
+        "session",
+        "shmop",
+        "SimpleXML",
+        "snmp",
+        "soap",
+        "sockets",
+        "sodium",
+        "SPL",
+        "sqlite3",
+        "standard",
+        "superglobals",
+        "sysvmsg",
+        "sysvsem",
+        "sysvshm",
+        "tidy",
+        "tokenizer",
+        "xml",
+        "xmlreader",
+        "xmlrpc",
+        "xmlwriter",
+        "xsl",
+        "Zend OPcache",
+        "zip",
+        "zlib",
+        "wordpress"
+    ],
+    "intelephense.environment.includePaths": [
+        "/Users/azzuwayed/Local Sites/oauth/app/public/wp-includes",
+        "/Users/azzuwayed/Local Sites/oauth/app/public/wp-admin/includes",
+        "${workspaceFolder}/vendor"
+    ],
+    "intelephense.diagnostics.undefinedFunctions": false,
+    "intelephense.diagnostics.undefinedConstants": false,
+    "intelephense.diagnostics.undefinedMethods": false,
+    "intelephense.diagnostics.undefinedProperties": false,
+    "intelephense.diagnostics.undefinedTypes": false,
+    "intelephense.format.braces": "k&r",
+    "intelephense.format.enable": true,
+    "intelephense.completion.insertUseDeclaration": true,
+    "intelephense.trace.server": "messages",
+
+    // PHP Settings
+    "php.validate.enable": true,
+    "php.executablePath": "/usr/local/bin/php",
+    "php.version": "8.1",
+    "php.suggest.basic": false,
+    "php.validate.run": "onSave",
+    "php.composer.executablePath": "/usr/local/bin/composer",
+    "php.composer.requireDev": true,
+    "php.composer.updateOnSave": false,
+    "php.composer.selfUpdate": true,
+
+    // Composer Settings
+    "composer.executablePath": "/usr/local/bin/composer",
+    "composer.requireDev": true,
+    "composer.updateOnSave": false,
+    "composer.selfUpdate": true,
+    "composer.workingDirectory": "${workspaceFolder}",
+    "composer.ignorePlatformReqs": false,
+    "composer.preferStable": true,
+    "composer.sortPackages": true,
+    "composer.optimizeAutoloader": true,
+
+    // Editor Settings
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.rulers": [80, 120],
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": true,
+    "editor.wordWrap": "off",
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+    },
+
+    // File Associations
+    "files.associations": {
+        "*.php": "php",
+        "*.phtml": "php",
+        "*.inc": "php",
+        "*.module": "php",
+        "*.install": "php",
+        "*.test": "php",
+        "*.theme": "php",
+        "*.engine": "php",
+        "*.profile": "php",
+        "*.info": "php",
+        "*.twig": "twig",
+        "composer.json": "jsonc",
+        "composer.lock": "jsonc"
+    },
+
+    // Search Settings
+    "search.exclude": {
+        "**/vendor": true,
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/tmp": true,
+        "**/dist": true,
+        "**/.git": true,
+        "**/wp-content/uploads": true,
+        "**/wp-content/cache": true,
+        "**/wp-content/upgrade": true,
+        "**/wp-content/backup-db": true,
+        "**/wp-content/backups": true,
+        "**/wp-content/debug.log": true,
+        "**/vendor/**": true,
+        "**/composer.lock": true
+    },
+
+    // WordPress Specific Settings
+    "wordpress.enable": true,
+    "wordpress.installPath": "/Users/azzuwayed/Local Sites/oauth/app/public",
+    "wordpress.hooksIntellisense": true,
+    "wordpress.snippets": true,
+
+    // Git Settings
+    "git.enableSmartCommit": true,
+    "git.autofetch": true,
+    "git.confirmSync": false,
+    "git.enableCommitSigning": true,
+
+    // Terminal Settings
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.fontFamily": "MesloLGS NF",
+    "terminal.integrated.fontSize": 14,
+
+    // Debug Settings
+    "debug.console.fontSize": 14,
+    "debug.toolBarLocation": "docked",
+    "debug.inlineValues": "on",
+
+    // Workspace Settings
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "files.watcherExclude": {
+        "**/vendor/**": true,
+        "**/node_modules/**": true,
+        "**/wp-content/uploads/**": true,
+        "**/wp-content/cache/**": true,
+        "**/composer.lock": true
+    },
+
+    // JSON Settings (for composer.json)
+    "json.schemas": [
+        {
+            "fileMatch": ["composer.json"],
+            "url": "https://getcomposer.org/schema.json"
+        }
+    ],
+    "json.format.enable": true,
+    "json.validate.enable": true,
+
+    // File Explorer Settings
+    "files.exclude": {
+        "**/vendor": true,
+        "**/node_modules": true,
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/wp-content/uploads": false,
+        "**/wp-content/cache": true,
+        "**/wp-content/upgrade": true,
+        "**/wp-content/backup-db": true,
+        "**/wp-content/backups": true,
+        "**/wp-content/debug.log": false,
+        "**/composer.lock": true
+    }
+}
