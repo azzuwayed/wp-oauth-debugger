@@ -27,8 +27,8 @@ A comprehensive debugging and monitoring tool for OAuth implementations in WordP
 
 ## Requirements
 
-- WordPress 5.0 or higher
-- PHP 7.4 or higher
+- WordPress 6.5 or higher
+- PHP 8.3 or higher
 - Composer for dependency management
 
 ## Installation
@@ -105,3 +105,27 @@ Abdullah Alzuwayed
 ## Support
 
 For support, please open an issue on the GitHub repository.
+
+## Running Tests
+
+To set up the WordPress test environment and run all plugin tests:
+
+```bash
+./test.sh
+```
+
+- This script will automatically set up the WordPress test suite if needed.
+- It will suppress deprecation, notice, and warning messages for a cleaner output.
+- If you need to reset the test environment, delete `/tmp/wordpress-tests-lib` and re-run the script.
+
+You can also run the setup manually:
+
+```bash
+composer run setup-tests
+```
+
+And then run PHPUnit directly:
+
+```bash
+vendor/bin/phpunit
+```

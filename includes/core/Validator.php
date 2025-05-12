@@ -78,10 +78,10 @@ class Validator {
      * @return self
      */
     private function check_wordpress_version() {
-        if (version_compare(get_bloginfo('version'), '5.0', '<')) {
+        if (version_compare(get_bloginfo('version'), '6.5', '<')) {
             $this->errors[] = sprintf(
                 __('WordPress version %s or higher is required. Current version is %s.', 'wp-oauth-debugger'),
-                '5.0',
+                '6.5',
                 get_bloginfo('version')
             );
         }

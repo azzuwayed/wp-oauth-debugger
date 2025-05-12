@@ -83,28 +83,6 @@
     "intelephense.completion.insertUseDeclaration": true,
     "intelephense.trace.server": "messages",
 
-    // PHP Settings
-    "php.validate.enable": true,
-    "php.executablePath": "/usr/local/bin/php",
-    "php.version": "8.1",
-    "php.suggest.basic": false,
-    "php.validate.run": "onSave",
-    "php.composer.executablePath": "/usr/local/bin/composer",
-    "php.composer.requireDev": true,
-    "php.composer.updateOnSave": false,
-    "php.composer.selfUpdate": true,
-
-    // Composer Settings
-    "composer.executablePath": "/usr/local/bin/composer",
-    "composer.requireDev": true,
-    "composer.updateOnSave": false,
-    "composer.selfUpdate": true,
-    "composer.workingDirectory": "${workspaceFolder}",
-    "composer.ignorePlatformReqs": false,
-    "composer.preferStable": true,
-    "composer.sortPackages": true,
-    "composer.optimizeAutoloader": true,
-
     // Editor Settings
     "editor.formatOnSave": true,
     "editor.formatOnPaste": true,
@@ -152,18 +130,6 @@
         "**/vendor/**": true,
         "**/composer.lock": true
     },
-
-    // WordPress Specific Settings
-    "wordpress.enable": true,
-    "wordpress.installPath": "/Users/azzuwayed/Local Sites/oauth/app/public",
-    "wordpress.hooksIntellisense": true,
-    "wordpress.snippets": true,
-
-    // Git Settings
-    "git.enableSmartCommit": true,
-    "git.autofetch": true,
-    "git.confirmSync": false,
-    "git.enableCommitSigning": true,
 
     // Terminal Settings
     "terminal.integrated.defaultProfile.osx": "zsh",

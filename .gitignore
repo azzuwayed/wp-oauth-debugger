@@ -12,3 +12,6 @@ package-lock.json
 coverage/
 build/
 dist/.bak
+
+# Documentation (excluded from releases)
+/docs/

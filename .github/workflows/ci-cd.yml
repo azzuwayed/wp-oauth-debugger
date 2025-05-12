@@ -1,0 +1,121 @@
+name: WordPress Plugin CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    name: Validate Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer, phpcs, phpcbf
+          extensions: mbstring, xml, curl
+
+      - name: Install dependencies
+        run: composer install
+
+      - name: Run PHPCS
+        run: |
+          phpcs --standard=WordPress --extensions=php .
+          phpcs --standard=PHPCompatibility --runtime-set testVersion 8.3- .
+
+      - name: Run security audit
+        run: composer audit
+
+  build:
+    name: Build Plugin
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      total_files: ${{ steps.build_info.outputs.total_files }}
+      build_size: ${{ steps.build_info.outputs.build_size }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer
+
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(grep -E "^[[:space:]]*\*[[:space:]]*Version:" wp-oauth-debugger.php | sed -E 's/.*Version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Build plugin
+        id: build_info
+        run: |
+          ./build_plugin.sh --version ${{ steps.get_version.outputs.version }}
+          # Extract build information
+          ZIP_FILE="build/wp-oauth-debugger-v${{ steps.get_version.outputs.version }}.zip"
+          echo "total_files=$(unzip -l "$ZIP_FILE" | tail -n 1 | awk '{print $2}')" >> $GITHUB_OUTPUT
+          echo "build_size=$(du -h "$ZIP_FILE" | cut -f1)" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: plugin-build
+          path: build/*.zip
+          retention-days: 5
+
+  deploy:
+    name: Deploy Plugin
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: plugin-build
+
+      - name: Get release notes
+        id: release_notes
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "## Changes since $LAST_TAG" >> $GITHUB_OUTPUT
+          git log --pretty=format:"- %s" $LAST_TAG..HEAD >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.build.outputs.version }}
+          name: Release v${{ needs.build.outputs.version }}
+          body: |
+            ${{ steps.release_notes.outputs.notes }}
+
+            ## Build Information
+            - Build Date: ${{ github.event.repository.updated_at }}
+            - PHP Version: 8.3
+            - WordPress Version: 6.5+
+            - Total Files: ${{ needs.build.outputs.total_files }}
+            - Build Size: ${{ needs.build.outputs.build_size }}
+          files: build/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
