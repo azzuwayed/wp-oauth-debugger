@@ -210,7 +210,10 @@ class Validator {
         $has_required_privileges = false;
 
         foreach ($privileges as $privilege) {
-            $grant_string = reset($privilege); // Get the first (and only) property value
+            // Fix deprecated reset() call for PHP 8+
+            $privilege_array = (array)$privilege;
+            $grant_string = !empty($privilege_array) ? current($privilege_array) : '';
+
             if (
                 strpos($grant_string, 'ALL PRIVILEGES') !== false ||
                 (strpos($grant_string, 'CREATE') !== false &&

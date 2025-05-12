@@ -9,6 +9,12 @@ use WP_OAuth_Debugger\Debug\DebugHelper;
  */
 class Admin {
     /**
+     * GitHub repository information.
+     */
+    const GITHUB_USERNAME = 'azzuwayed';
+    const GITHUB_REPO = 'wp-oauth-debugger';
+
+    /**
      * The ID of this plugin.
      *
      * @var string
@@ -181,6 +187,15 @@ class Admin {
 
         add_submenu_page(
             'oauth-debugger',
+            __('Settings', 'wp-oauth-debugger'),
+            __('Settings', 'wp-oauth-debugger'),
+            'manage_options',
+            'oauth-debugger-settings',
+            array($this, 'render_settings_page')
+        );
+
+        add_submenu_page(
+            'oauth-debugger',
             __('Help & Documentation', 'wp-oauth-debugger'),
             __('Help & Documentation', 'wp-oauth-debugger'),
             'manage_options',
@@ -193,15 +208,31 @@ class Admin {
      * Register plugin settings.
      */
     public function register_settings() {
-        register_setting('oauth_debugger_settings', 'oauth_debug_log_level');
-        register_setting('oauth_debugger_settings', 'oauth_debug_log_retention');
-        register_setting('oauth_debugger_settings', 'oauth_debug_auto_cleanup');
-        register_setting('oauth_debugger_settings', 'oauth_debug_security_scan_interval');
-        register_setting('oauth_debugger_settings', 'oauth_debug_enable_public_panel');
-        register_setting('oauth_debugger_settings', 'oauth_debug_allowed_roles');
-        register_setting('oauth_debugger_settings', 'oauth_debug_rate_limit');
-        register_setting('oauth_debugger_settings', 'oauth_debug_rate_limit_window');
-        register_setting('oauth_debugger_settings', 'oauth_debug_clear_logs_on_deactivate');
+        // General settings
+        register_setting('oauth_debugger_general_settings', 'oauth_debug_log_level');
+        register_setting('oauth_debugger_general_settings', 'oauth_debug_log_retention');
+        register_setting('oauth_debugger_general_settings', 'oauth_debug_auto_cleanup');
+        register_setting('oauth_debugger_general_settings', 'oauth_debug_clear_logs_on_deactivate');
+
+        // Security settings
+        register_setting('oauth_debugger_security_settings', 'oauth_debug_security_scan_interval');
+        register_setting('oauth_debugger_security_settings', 'oauth_debug_enable_public_panel');
+        register_setting('oauth_debugger_security_settings', 'oauth_debug_allowed_roles');
+
+        // Notification settings
+        register_setting('oauth_debugger_notification_settings', 'oauth_debug_email_notifications');
+        register_setting('oauth_debugger_notification_settings', 'oauth_debug_notification_email');
+        register_setting('oauth_debugger_notification_settings', 'oauth_debug_notification_security_events');
+        register_setting('oauth_debugger_notification_settings', 'oauth_debug_notification_auth_failures');
+
+        // Updates settings
+        register_setting('oauth_debugger_updates_settings', 'oauth_debug_auto_updates');
+        register_setting('oauth_debugger_updates_settings', 'oauth_debug_beta_updates');
+        register_setting('oauth_debugger_updates_settings', 'oauth_debug_update_check_interval');
+
+        // Rate limiting settings
+        register_setting('oauth_debugger_security_settings', 'oauth_debug_rate_limit');
+        register_setting('oauth_debugger_security_settings', 'oauth_debug_rate_limit_window');
     }
 
     /**
@@ -319,7 +350,7 @@ class Admin {
                 // Existing monitor page JavaScript...
             });
         </script>
-<?php
+    <?php
     }
 
     /**
@@ -346,6 +377,29 @@ class Admin {
         }
 
         include plugin_dir_path(dirname(__FILE__)) . 'templates/help-page.php';
+    }
+
+    /**
+     * Render the settings page with tabbed navigation.
+     */
+    public function render_settings_page() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        // Get current tab from URL or default to general
+        $current_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'general';
+
+        // Define tabs
+        $tabs = array(
+            'general' => __('General', 'wp-oauth-debugger'),
+            'security' => __('Security', 'wp-oauth-debugger'),
+            'notifications' => __('Notifications', 'wp-oauth-debugger'),
+            'updates' => __('Updates', 'wp-oauth-debugger'),
+        );
+
+        // Include the settings template
+        include plugin_dir_path(dirname(__FILE__)) . 'templates/settings-page.php';
     }
 
     /**
@@ -433,5 +487,360 @@ class Admin {
         } else {
             wp_send_json_error($result);
         }
+    }
+
+    /**
+     * Get dashicon for a settings tab.
+     *
+     * @param string $tab Tab ID.
+     * @return string Dashicon name.
+     */
+    private function get_tab_icon($tab) {
+        $icons = [
+            'general' => 'admin-settings',
+            'security' => 'shield',
+            'notifications' => 'email',
+            'updates' => 'update',
+        ];
+
+        return $icons[$tab] ?? 'admin-generic';
+    }
+
+    /**
+     * Render general settings fields.
+     */
+    private function render_general_settings_fields() {
+        $log_level = get_option('oauth_debug_log_level', 'info');
+        $log_retention = get_option('oauth_debug_log_retention', 7);
+        $auto_cleanup = get_option('oauth_debug_auto_cleanup', true);
+        $clear_on_deactivate = get_option('oauth_debug_clear_logs_on_deactivate', false);
+    ?>
+        <div class="oauth-debugger-settings-section">
+            <h3><?php _e('Logging Configuration', 'wp-oauth-debugger'); ?></h3>
+
+            <div class="oauth-debugger-field-row">
+                <label class="oauth-debugger-field-label" for="oauth_debug_log_level">
+                    <?php _e('Log Level', 'wp-oauth-debugger'); ?>
+                </label>
+                <select name="oauth_debug_log_level" id="oauth_debug_log_level">
+                    <option value="debug" <?php selected($log_level, 'debug'); ?>>
+                        <?php _e('Debug (Most Verbose)', 'wp-oauth-debugger'); ?>
+                    </option>
+                    <option value="info" <?php selected($log_level, 'info'); ?>>
+                        <?php _e('Info (Recommended)', 'wp-oauth-debugger'); ?>
+                    </option>
+                    <option value="warning" <?php selected($log_level, 'warning'); ?>>
+                        <?php _e('Warning', 'wp-oauth-debugger'); ?>
+                    </option>
+                    <option value="error" <?php selected($log_level, 'error'); ?>>
+                        <?php _e('Error (Least Verbose)', 'wp-oauth-debugger'); ?>
+                    </option>
+                </select>
+                <p class="oauth-debugger-field-description">
+                    <?php _e('Select how detailed the logs should be. More verbose levels will generate more logs.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+
+            <div class="oauth-debugger-field-row">
+                <label class="oauth-debugger-field-label" for="oauth_debug_log_retention">
+                    <?php _e('Log Retention Period (Days)', 'wp-oauth-debugger'); ?>
+                </label>
+                <input type="number" name="oauth_debug_log_retention" id="oauth_debug_log_retention"
+                    value="<?php echo esc_attr($log_retention); ?>" min="1" max="90" step="1" />
+                <p class="oauth-debugger-field-description">
+                    <?php _e('Number of days to keep logs before automatic deletion. Recommended: 7-30 days.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+
+            <div class="oauth-debugger-field-row">
+                <div class="oauth-debugger-checkbox-item">
+                    <input type="checkbox" name="oauth_debug_auto_cleanup" id="oauth_debug_auto_cleanup"
+                        value="1" <?php checked($auto_cleanup); ?> />
+                    <label for="oauth_debug_auto_cleanup">
+                        <?php _e('Enable automatic log cleanup', 'wp-oauth-debugger'); ?>
+                    </label>
+                </div>
+                <p class="oauth-debugger-field-description">
+                    <?php _e('Automatically delete logs older than the retention period.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+
+            <div class="oauth-debugger-field-row">
+                <div class="oauth-debugger-checkbox-item">
+                    <input type="checkbox" name="oauth_debug_clear_logs_on_deactivate" id="oauth_debug_clear_logs_on_deactivate"
+                        value="1" <?php checked($clear_on_deactivate); ?> />
+                    <label for="oauth_debug_clear_logs_on_deactivate">
+                        <?php _e('Clear logs on plugin deactivation', 'wp-oauth-debugger'); ?>
+                    </label>
+                </div>
+                <p class="oauth-debugger-field-description">
+                    <?php _e('Remove all logs when the plugin is deactivated.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+        </div>
+
+        <div class="oauth-debugger-settings-section">
+            <h3><?php _e('Debug Console', 'wp-oauth-debugger'); ?></h3>
+
+            <div class="oauth-debugger-field-row">
+                <p>
+                    <?php _e('The debug console provides real-time insight into OAuth flows and requests.', 'wp-oauth-debugger'); ?>
+                </p>
+                <p>
+                    <a href="<?php echo admin_url('admin.php?page=oauth-debugger-monitor'); ?>" class="button button-secondary">
+                        <span class="dashicons dashicons-visibility"></span>
+                        <?php _e('Open Live Monitor', 'wp-oauth-debugger'); ?>
+                    </a>
+                </p>
+            </div>
+        </div>
+    <?php
+    }
+
+    /**
+     * Render security settings fields.
+     */
+    private function render_security_settings_fields() {
+        $scan_interval = get_option('oauth_debug_security_scan_interval', 24);
+        $public_panel = get_option('oauth_debug_enable_public_panel', false);
+        $allowed_roles = get_option('oauth_debug_allowed_roles', ['administrator']);
+        $rate_limit = get_option('oauth_debug_rate_limit', 60);
+        $rate_limit_window = get_option('oauth_debug_rate_limit_window', 60);
+
+        // Get all roles
+        $roles = get_editable_roles();
+    ?>
+
+        <div class="oauth-debugger-settings-section">
+            <h3><?php _e('Security Scan Settings', 'wp-oauth-debugger'); ?></h3>
+
+            <div class="oauth-debugger-field-row">
+                <label class="oauth-debugger-field-label" for="oauth_debug_security_scan_interval">
+                    <?php _e('Security Scan Interval (Hours)', 'wp-oauth-debugger'); ?>
+                </label>
+                <input type="number" name="oauth_debug_security_scan_interval" id="oauth_debug_security_scan_interval"
+                    value="<?php echo esc_attr($scan_interval); ?>" min="1" max="168" step="1" />
+                <p class="oauth-debugger-field-description">
+                    <?php _e('How often to run automated security scans. Recommended: 24 hours.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+        </div>
+
+        <div class="oauth-debugger-settings-section">
+            <h3><?php _e('Access Control', 'wp-oauth-debugger'); ?></h3>
+
+            <div class="oauth-debugger-field-row">
+                <div class="oauth-debugger-checkbox-item">
+                    <input type="checkbox" name="oauth_debug_enable_public_panel" id="oauth_debug_enable_public_panel"
+                        value="1" <?php checked($public_panel); ?> />
+                    <label for="oauth_debug_enable_public_panel">
+                        <?php _e('Enable public debugging panel', 'wp-oauth-debugger'); ?>
+                    </label>
+                </div>
+                <p class="oauth-debugger-field-description">
+                    <?php _e('WARNING: Only enable during development. This will allow accessing debug information without authentication.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+
+            <div class="oauth-debugger-field-row">
+                <label class="oauth-debugger-field-label">
+                    <?php _e('Allowed User Roles', 'wp-oauth-debugger'); ?>
+                </label>
+                <div class="oauth-debugger-checkbox-group">
+                    <?php foreach ($roles as $role_key => $role) : ?>
+                        <div class="oauth-debugger-checkbox-item">
+                            <input type="checkbox" name="oauth_debug_allowed_roles[]"
+                                id="role_<?php echo esc_attr($role_key); ?>"
+                                value="<?php echo esc_attr($role_key); ?>"
+                                <?php checked(in_array($role_key, (array)$allowed_roles)); ?>
+                                <?php disabled($role_key === 'administrator'); ?> />
+                            <label for="role_<?php echo esc_attr($role_key); ?>">
+                                <?php echo esc_html($role['name']); ?>
+                            </label>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <p class="oauth-debugger-field-description">
+                    <?php _e('Select which user roles can access the OAuth Debugger. Administrators always have access.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+        </div>
+
+        <div class="oauth-debugger-settings-section">
+            <h3><?php _e('Rate Limiting', 'wp-oauth-debugger'); ?></h3>
+
+            <div class="oauth-debugger-field-row">
+                <label class="oauth-debugger-field-label" for="oauth_debug_rate_limit">
+                    <?php _e('Rate Limit (Requests)', 'wp-oauth-debugger'); ?>
+                </label>
+                <input type="number" name="oauth_debug_rate_limit" id="oauth_debug_rate_limit"
+                    value="<?php echo esc_attr($rate_limit); ?>" min="1" max="1000" step="1" />
+                <p class="oauth-debugger-field-description">
+                    <?php _e('Maximum number of requests allowed within the time window.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+
+            <div class="oauth-debugger-field-row">
+                <label class="oauth-debugger-field-label" for="oauth_debug_rate_limit_window">
+                    <?php _e('Rate Limit Window (Seconds)', 'wp-oauth-debugger'); ?>
+                </label>
+                <input type="number" name="oauth_debug_rate_limit_window" id="oauth_debug_rate_limit_window"
+                    value="<?php echo esc_attr($rate_limit_window); ?>" min="1" max="3600" step="1" />
+                <p class="oauth-debugger-field-description">
+                    <?php _e('Time window for rate limiting in seconds. Default: 60 seconds (1 minute).', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+        </div>
+    <?php
+    }
+
+    /**
+     * Render notification settings fields.
+     */
+    private function render_notification_settings_fields() {
+        $email_notifications = get_option('oauth_debug_email_notifications', false);
+        $notification_email = get_option('oauth_debug_notification_email', get_option('admin_email'));
+        $notify_security = get_option('oauth_debug_notification_security_events', true);
+        $notify_auth_failures = get_option('oauth_debug_notification_auth_failures', true);
+    ?>
+
+        <div class="oauth-debugger-settings-section">
+            <h3><?php _e('Email Notifications', 'wp-oauth-debugger'); ?></h3>
+
+            <div class="oauth-debugger-field-row">
+                <div class="oauth-debugger-checkbox-item">
+                    <input type="checkbox" name="oauth_debug_email_notifications" id="oauth_debug_email_notifications"
+                        value="1" <?php checked($email_notifications); ?> />
+                    <label for="oauth_debug_email_notifications">
+                        <?php _e('Enable email notifications', 'wp-oauth-debugger'); ?>
+                    </label>
+                </div>
+                <p class="oauth-debugger-field-description">
+                    <?php _e('Send email notifications for important OAuth events.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+
+            <div class="oauth-debugger-field-row">
+                <label class="oauth-debugger-field-label" for="oauth_debug_notification_email">
+                    <?php _e('Notification Email', 'wp-oauth-debugger'); ?>
+                </label>
+                <input type="email" name="oauth_debug_notification_email" id="oauth_debug_notification_email"
+                    value="<?php echo esc_attr($notification_email); ?>" />
+                <p class="oauth-debugger-field-description">
+                    <?php _e('Email address to receive notifications. Default is the admin email.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+        </div>
+
+        <div class="oauth-debugger-settings-section">
+            <h3><?php _e('Notification Events', 'wp-oauth-debugger'); ?></h3>
+
+            <div class="oauth-debugger-field-row">
+                <div class="oauth-debugger-checkbox-group">
+                    <div class="oauth-debugger-checkbox-item">
+                        <input type="checkbox" name="oauth_debug_notification_security_events" id="oauth_debug_notification_security_events"
+                            value="1" <?php checked($notify_security); ?> />
+                        <label for="oauth_debug_notification_security_events">
+                            <?php _e('Security Events', 'wp-oauth-debugger'); ?>
+                        </label>
+                    </div>
+                    <div class="oauth-debugger-checkbox-item">
+                        <input type="checkbox" name="oauth_debug_notification_auth_failures" id="oauth_debug_notification_auth_failures"
+                            value="1" <?php checked($notify_auth_failures); ?> />
+                        <label for="oauth_debug_notification_auth_failures">
+                            <?php _e('Authentication Failures', 'wp-oauth-debugger'); ?>
+                        </label>
+                    </div>
+                </div>
+                <p class="oauth-debugger-field-description">
+                    <?php _e('Select which events should trigger email notifications.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+        </div>
+
+        <div class="oauth-debugger-settings-section">
+            <h3><?php _e('Notification Templates', 'wp-oauth-debugger'); ?></h3>
+
+            <div class="oauth-debugger-field-row">
+                <p>
+                    <?php _e('Notification templates are currently in development. Custom email templates will be available in a future update.', 'wp-oauth-debugger'); ?>
+                </p>
+                <div class="oauth-debugger-badge info">
+                    <span class="dashicons dashicons-info"></span>
+                    <?php _e('Coming Soon', 'wp-oauth-debugger'); ?>
+                </div>
+            </div>
+        </div>
+    <?php
+    }
+
+    /**
+     * Render updates settings fields.
+     */
+    private function render_updates_settings_fields() {
+        $auto_updates = get_option('oauth_debug_auto_updates', false);
+        $beta_updates = get_option('oauth_debug_beta_updates', false);
+        $update_interval = get_option('oauth_debug_update_check_interval', 12);
+    ?>
+
+        <div class="oauth-debugger-settings-section">
+            <h3><?php _e('Update Settings', 'wp-oauth-debugger'); ?></h3>
+
+            <div class="oauth-debugger-field-row">
+                <div class="oauth-debugger-checkbox-item">
+                    <input type="checkbox" name="oauth_debug_auto_updates" id="oauth_debug_auto_updates"
+                        value="1" <?php checked($auto_updates); ?> />
+                    <label for="oauth_debug_auto_updates">
+                        <?php _e('Enable automatic updates', 'wp-oauth-debugger'); ?>
+                    </label>
+                </div>
+                <p class="oauth-debugger-field-description">
+                    <?php _e('Automatically update to the latest stable release when available.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+
+            <div class="oauth-debugger-field-row">
+                <div class="oauth-debugger-checkbox-item">
+                    <input type="checkbox" name="oauth_debug_beta_updates" id="oauth_debug_beta_updates"
+                        value="1" <?php checked($beta_updates); ?> />
+                    <label for="oauth_debug_beta_updates">
+                        <?php _e('Include beta releases', 'wp-oauth-debugger'); ?>
+                    </label>
+                </div>
+                <p class="oauth-debugger-field-description">
+                    <?php _e('Receive updates for beta versions (not recommended for production sites).', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+
+            <div class="oauth-debugger-field-row">
+                <label class="oauth-debugger-field-label" for="oauth_debug_update_check_interval">
+                    <?php _e('Update Check Interval (Hours)', 'wp-oauth-debugger'); ?>
+                </label>
+                <input type="number" name="oauth_debug_update_check_interval" id="oauth_debug_update_check_interval"
+                    value="<?php echo esc_attr($update_interval); ?>" min="1" max="168" step="1" />
+                <p class="oauth-debugger-field-description">
+                    <?php _e('How often to check for updates. Default: 12 hours.', 'wp-oauth-debugger'); ?>
+                </p>
+            </div>
+        </div>
+
+        <div class="oauth-debugger-settings-section">
+            <h3><?php _e('Current Version', 'wp-oauth-debugger'); ?></h3>
+
+            <div class="oauth-debugger-field-row">
+                <p>
+                    <strong><?php _e('Installed Version:', 'wp-oauth-debugger'); ?></strong>
+                    <?php echo esc_html(WP_OAUTH_DEBUGGER_VERSION); ?>
+                </p>
+                <p>
+                    <a href="https://github.com/<?php echo esc_attr(self::GITHUB_USERNAME); ?>/<?php echo esc_attr(self::GITHUB_REPO); ?>/releases"
+                        target="_blank" class="button button-secondary">
+                        <span class="dashicons dashicons-external"></span>
+                        <?php _e('View Release Notes', 'wp-oauth-debugger'); ?>
+                    </a>
+                </p>
+            </div>
+        </div>
+<?php
     }
 }

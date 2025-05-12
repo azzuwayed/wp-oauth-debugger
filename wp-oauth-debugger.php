@@ -217,6 +217,12 @@ function run_oauth_debugger() {
         dirname(WP_OAUTH_DEBUGGER_PLUGIN_BASENAME) . '/languages'
     );
 
+    // Manually load plugin update checker if needed
+    $update_checker_file = WP_OAUTH_DEBUGGER_PLUGIN_DIR . 'vendor/yahnis-elsts/plugin-update-checker/plugin-update-checker.php';
+    if (file_exists($update_checker_file)) {
+        require_once $update_checker_file;
+    }
+
     // Initialize update checker
     if (class_exists('WP_OAuth_Debugger\Core\UpdateChecker')) {
         WP_OAuth_Debugger\Core\UpdateChecker::init();
