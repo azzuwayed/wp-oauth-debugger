@@ -11,4 +11,4 @@ package-lock.json
 .phpunit.result.cache
 coverage/
 build/
-dist/ 
+dist/.bak

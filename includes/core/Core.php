@@ -4,7 +4,6 @@ namespace WP_OAuth_Debugger\Core;
 use WP_OAuth_Debugger\Admin\Admin;
 use WP_OAuth_Debugger\Core\Loader;
 use WP_OAuth_Debugger\Debug\DebugHelper;
-use WP_OAuth_Debugger\Public\PublicFacing;
 
 /**
  * The core plugin class.
@@ -39,7 +38,6 @@ class Core {
         $this->version = WP_OAUTH_DEBUGGER_VERSION;
         $this->load_dependencies();
         $this->define_admin_hooks();
-        $this->define_public_hooks();
     }
 
     /**
@@ -70,18 +68,6 @@ class Core {
         $this->loader->add_action('wp_oauth_server_before_authorization', $debug_helper, 'log_authorization_attempt', 10, 2);
         $this->loader->add_action('wp_oauth_server_after_authorization', $debug_helper, 'log_authorization_result', 10, 2);
         $this->loader->add_action('wp_scheduled_delete', $debug_helper, 'cleanup_old_logs');
-    }
-
-    /**
-     * Register all of the hooks related to the public-facing functionality.
-     */
-    private function define_public_hooks() {
-        $plugin_public = new PublicFacing($this->get_plugin_name(), $this->get_version());
-        $debug_helper = new DebugHelper();
-
-        $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
-        $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
-        $this->loader->add_action('rest_api_init', $debug_helper, 'register_rest_routes');
     }
 
     /**
@@ -117,4 +103,4 @@ class Core {
     public function get_version() {
         return $this->version;
     }
-} 
+}

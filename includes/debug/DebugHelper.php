@@ -1,10 +1,12 @@
 <?php
+
 namespace WP_OAuth_Debugger\Debug;
 
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\RotatingFileHandler;
 use WP_OAuth_Debugger\Core\Loader;
+use WP_OAuth_Debugger\Security\SecurityScanner;
 
 /**
  * The core debugging functionality of the plugin.
@@ -23,6 +25,13 @@ class DebugHelper {
      * @var string
      */
     private $log_dir;
+
+    /**
+     * The security scanner instance.
+     *
+     * @var SecurityScanner|null
+     */
+    private $security_scanner = null;
 
     /**
      * Initialize the class and set up logging.
@@ -56,6 +65,29 @@ class DebugHelper {
     }
 
     /**
+     * Get the security scanner instance.
+     *
+     * @return SecurityScanner
+     */
+    private function get_security_scanner() {
+        if ($this->security_scanner === null) {
+            if (!class_exists('WP_OAuth_Debugger\Security\SecurityScanner')) {
+                // Try to load the class file directly if autoloader hasn't loaded it yet
+                $scanner_file = WP_OAUTH_DEBUGGER_PLUGIN_DIR . 'includes/Security/SecurityScanner.php';
+                if (file_exists($scanner_file)) {
+                    require_once $scanner_file;
+                }
+
+                if (!class_exists('WP_OAuth_Debugger\Security\SecurityScanner')) {
+                    throw new \RuntimeException('SecurityScanner class could not be loaded. Please ensure the autoloader is working correctly.');
+                }
+            }
+            $this->security_scanner = new \WP_OAuth_Debugger\Security\SecurityScanner($this);
+        }
+        return $this->security_scanner;
+    }
+
+    /**
      * Log a message with the specified level.
      *
      * @param string $message The message to log.
@@ -70,7 +102,7 @@ class DebugHelper {
         try {
             $log_levels = array('debug', 'info', 'warning', 'error');
             $min_level = defined('OAUTH_DEBUG_LOG_LEVEL') ? \OAUTH_DEBUG_LOG_LEVEL : 'info';
-            
+
             if (array_search($level, $log_levels) < array_search($min_level, $log_levels)) {
                 return;
             }
@@ -86,7 +118,7 @@ class DebugHelper {
             );
 
             $log_line = json_encode($log_entry) . "\n";
-            
+
             if (file_put_contents($this->log_file, $log_line, FILE_APPEND | LOCK_EX) === false) {
                 error_log('OAuth Debugger: Failed to write to log file');
             }
@@ -206,13 +238,17 @@ class DebugHelper {
      */
     public function get_active_tokens() {
         global $wpdb;
-        
+
         $tokens = array();
         $table_name = $wpdb->prefix . 'oauth_access_tokens';
-        
+
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") === $table_name) {
+            // Check if created_at column exists
+            $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table_name LIKE 'created_at'");
+            $order_by = !empty($column_exists) ? 'created_at' : 'id';
+
             $results = $wpdb->get_results(
-                "SELECT * FROM $table_name WHERE expires > NOW() ORDER BY created_at DESC",
+                "SELECT * FROM $table_name WHERE expires > NOW() ORDER BY $order_by DESC",
                 \ARRAY_A
             );
 
@@ -224,7 +260,7 @@ class DebugHelper {
                     'user_login' => $user ? $user->user_login : 'Unknown',
                     'client_id' => $token['client_id'],
                     'scopes' => maybe_unserialize($token['scopes']),
-                    'created_at' => $token['created_at'],
+                    'created_at' => isset($token['created_at']) ? $token['created_at'] : $token['id'],
                     'expires' => $token['expires'],
                     'access_token' => $this->mask_sensitive_data($token['access_token'])
                 );
@@ -242,7 +278,7 @@ class DebugHelper {
      */
     public function delete_token($token_id) {
         global $wpdb;
-        
+
         $table_name = $wpdb->prefix . 'oauth_access_tokens';
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") === $table_name) {
             return $wpdb->delete(
@@ -251,7 +287,7 @@ class DebugHelper {
                 array('%s')
             ) !== false;
         }
-        
+
         return false;
     }
 
@@ -262,7 +298,7 @@ class DebugHelper {
      */
     public function get_server_info() {
         global $wp_version;
-        
+
         return array(
             'wordpress_version' => $wp_version,
             'php_version' => PHP_VERSION,
@@ -298,12 +334,22 @@ class DebugHelper {
     }
 
     /**
-     * Get security status.
+     * Get security scan results.
+     *
+     * @return array
+     */
+    public function get_security_scan() {
+        return $this->get_security_scanner()->run_security_scan();
+    }
+
+    /**
+     * Get enhanced security status.
      *
      * @return array
      */
     public function get_security_status() {
-        return array(
+        $basic_status = array(
+            'environment' => $this->determine_environment(),
             'ssl_enabled' => is_ssl(),
             'secure_cookies' => defined('COOKIEPATH') && COOKIEPATH === '/',
             'token_lifetime' => $this->get_token_lifetime(),
@@ -312,6 +358,50 @@ class DebugHelper {
             'rate_limiting' => $this->check_rate_limiting(),
             'security_headers' => $this->check_security_headers()
         );
+
+        // Get detailed security scan results
+        $scan_results = $this->get_security_scan();
+
+        return array_merge($basic_status, array(
+            'security_score' => $scan_results['security_score'],
+            'vulnerabilities' => $scan_results['vulnerabilities'],
+            'jwt_analysis' => $scan_results['jwt_analysis'],
+            'oauth_config' => $scan_results['oauth_config'],
+            'recommendations' => $scan_results['recommendations']
+        ));
+    }
+
+    /**
+     * Determine the current environment.
+     *
+     * @return string 'development' or 'production'
+     */
+    private function determine_environment() {
+        // Check for common development environment indicators
+        $is_dev = false;
+
+        // Check if WP_DEBUG is enabled
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $is_dev = true;
+        }
+
+        // Check if we're on localhost
+        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+        if (in_array($host, array('localhost', '127.0.0.1', '::1'))) {
+            $is_dev = true;
+        }
+
+        // Check for common development TLDs
+        if (preg_match('/\.(local|test|dev|localhost)$/', $host)) {
+            $is_dev = true;
+        }
+
+        // Check for common development environment variables
+        if (defined('WP_ENVIRONMENT_TYPE') && WP_ENVIRONMENT_TYPE === 'development') {
+            $is_dev = true;
+        }
+
+        return $is_dev ? 'development' : 'production';
     }
 
     /**
@@ -342,7 +432,7 @@ class DebugHelper {
      */
     private function check_cors_configuration() {
         $headers = headers_list();
-        $cors_headers = array_filter($headers, function($header) {
+        $cors_headers = array_filter($headers, function ($header) {
             return stripos($header, 'Access-Control-') === 0;
         });
 
@@ -424,19 +514,19 @@ class DebugHelper {
     private function check_rate_limit($endpoint, $user_id) {
         $rate_limit = get_option('oauth_debug_rate_limit', 60);
         $rate_window = get_option('oauth_debug_rate_limit_window', 60);
-        
+
         $transient_key = "oauth_debug_rate_{$endpoint}_{$user_id}";
         $requests = get_transient($transient_key);
-        
+
         if ($requests === false) {
             set_transient($transient_key, 1, $rate_window);
             return true;
         }
-        
+
         if ($requests >= $rate_limit) {
             return false;
         }
-        
+
         set_transient($transient_key, $requests + 1, $rate_window);
         return true;
     }
@@ -448,32 +538,32 @@ class DebugHelper {
         register_rest_route('oauth-debugger/v1', '/logs', array(
             'methods' => 'GET',
             'callback' => array($this, 'get_logs_endpoint'),
-            'permission_callback' => function() {
-                return $this->check_capability() && 
-                       $this->check_rate_limit('get_logs', get_current_user_id());
+            'permission_callback' => function () {
+                return $this->check_capability() &&
+                    $this->check_rate_limit('get_logs', get_current_user_id());
             }
         ));
 
         register_rest_route('oauth-debugger/v1', '/tokens', array(
             'methods' => 'GET',
             'callback' => array($this, 'get_tokens_endpoint'),
-            'permission_callback' => function() {
-                return $this->check_capability() && 
-                       $this->check_rate_limit('get_tokens', get_current_user_id());
+            'permission_callback' => function () {
+                return $this->check_capability() &&
+                    $this->check_rate_limit('get_tokens', get_current_user_id());
             }
         ));
 
         register_rest_route('oauth-debugger/v1', '/tokens/(?P<id>[a-zA-Z0-9-]+)', array(
             'methods' => 'DELETE',
             'callback' => array($this, 'delete_token_endpoint'),
-            'permission_callback' => function() {
-                return $this->check_capability() && 
-                       $this->check_rate_limit('delete_token', get_current_user_id());
+            'permission_callback' => function () {
+                return $this->check_capability() &&
+                    $this->check_rate_limit('delete_token', get_current_user_id());
             },
             'args' => array(
                 'id' => array(
                     'required' => true,
-                    'validate_callback' => function($param) {
+                    'validate_callback' => function ($param) {
                         return is_string($param) && preg_match('/^[a-zA-Z0-9-]+$/', $param);
                     }
                 )
@@ -494,7 +584,7 @@ class DebugHelper {
 
         $limit = absint($request->get_param('limit')) ?: 100;
         $logs = $this->get_recent_logs($limit);
-        
+
         return rest_ensure_response($logs);
     }
 
@@ -526,11 +616,11 @@ class DebugHelper {
 
         $token_id = $request->get_param('id');
         $result = $this->delete_token($token_id);
-        
+
         if ($result) {
             return rest_ensure_response(array('success' => true));
         }
-        
+
         return new \WP_Error('delete_failed', 'Failed to delete token.', array('status' => 500));
     }
 
@@ -558,4 +648,4 @@ class DebugHelper {
     public function log_request() {
         // (Stub implementation.)
     }
-} 
+}
