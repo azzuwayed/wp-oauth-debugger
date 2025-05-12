@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<ruleset name="WordPress OAuth Debugger Coding Standards">
+    <description>PHP CodeSniffer configuration for WordPress OAuth Debugger plugin.</description>
+
+    <!-- What to scan -->
+    <file>.</file>
+
+    <!-- Exclude paths -->
+    <exclude-pattern>/vendor/*</exclude-pattern>
+    <exclude-pattern>/node_modules/*</exclude-pattern>
+    <exclude-pattern>/build/*</exclude-pattern>
+    <exclude-pattern>/backups/*</exclude-pattern>
+    <exclude-pattern>/logs/*</exclude-pattern>
+    <exclude-pattern>/assets/js/lib/*</exclude-pattern>
+    <exclude-pattern>/assets/css/lib/*</exclude-pattern>
+    <exclude-pattern>/.git/*</exclude-pattern>
+    <exclude-pattern>/.github/*</exclude-pattern>
+    <exclude-pattern>*.min.js</exclude-pattern>
+    <exclude-pattern>*.min.css</exclude-pattern>
+    <exclude-pattern>*.asset.php</exclude-pattern>
+    <exclude-pattern>/tests/*</exclude-pattern>
+
+    <!-- How to scan -->
+    <arg value="sp"/>
+    <!-- Show sniff and progress -->
+    <arg name="colors"/>
+    <!-- Show results with colors -->
+    <arg name="basepath" value="."/>
+    <!-- Strip the file paths down to the relevant bit -->
+    <arg name="parallel" value="8"/>
+    <!-- Enables parallel processing -->
+    <arg name="extensions" value="php"/>
+    <!-- Limit to PHP files -->
+    <arg name="cache" value=".phpcs-cache"/>
+    <!-- Cache results between runs -->
+
+    <!-- Ignore specific errors/warnings -->
+    <arg name="warning-severity" value="6"/>
+    <arg name="error-severity" value="8"/>
+
+    <!-- Rules -->
+    <config name="minimum_supported_wp_version" value="6.3"/>
+    <!-- Minimum WordPress version -->
+
+    <!-- WordPress Coding Standards -->
+    <rule ref="WordPress">
+        <!-- Exclude specific sniffs -->
+        <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+        <exclude name="Generic.Functions.CallTimePassByReference"/>
+        <exclude name="WordPress.Security.EscapeOutput.UnsafePrintingFunction"/>
+        <exclude name="WordPress.WP.I18n.NonSingularStringLiteralText"/>
+        <exclude name="Generic.WhiteSpace.DisallowSpaceIndent"/>
+        <exclude name="WordPress.Security.EscapeOutput.OutputNotEscaped"/>
+        <exclude name="PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket"/>
+        <exclude name="PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket"/>
+        <exclude name="WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis"/>
+        <exclude name="WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeCloseParenthesis"/>
+    </rule>
+
+    <!-- Additional WordPress Rules -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="wp-oauth-debugger"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- PHP Compatibility -->
+    <config name="testVersion" value="8.3-"/>
+    <rule ref="PHPCompatibility"/>
+
+    <!-- Security scanning -->
+    <rule ref="WordPress.Security"/>
+
+    <!-- Include all the WordPress VIP Go sniffs -->
+    <rule ref="WordPress.Security.EscapeOutput"/>
+    <rule ref="WordPress.Security.NonceVerification"/>
+
+    <!-- Include WordPress.WhiteSpace sniffs -->
+    <rule ref="WordPress.WhiteSpace.ControlStructureSpacing"/>
+    <rule ref="WordPress.WhiteSpace.OperatorSpacing"/>
+
+    <!-- Include coding style standards -->
+    <rule ref="Squiz.Commenting.ClassComment"/>
+    <rule ref="Squiz.Commenting.FunctionComment"/>
+    <rule ref="Squiz.Commenting.VariableComment"/>
+
+    <!-- Enforce short array syntax -->
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+</ruleset>

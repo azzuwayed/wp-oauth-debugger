@@ -11,8 +11,8 @@ class UpdateChecker {
     /**
      * GitHub repository details.
      */
-    private const GITHUB_USERNAME = 'azzuwayed';
-    private const GITHUB_REPO = 'wp-oauth-debugger';
+    private const GITHUB_USERNAME       = 'azzuwayed';
+    private const GITHUB_REPO           = 'wp-oauth-debugger';
     private const UPDATE_CHECK_INTERVAL = 12; // hours
 
     /**
@@ -20,7 +20,7 @@ class UpdateChecker {
      */
     public static function init() {
         // Only check for updates if we're in the admin area
-        if (!is_admin()) {
+        if (! is_admin()) {
             return;
         }
 
@@ -45,18 +45,26 @@ class UpdateChecker {
         $update_checker->setCheckInterval(self::UPDATE_CHECK_INTERVAL * 3600);
 
         // Add custom update message
-        add_filter('puc_pre_inject_update-' . $update_checker->getUniqueName(), function ($update) {
-            $update->sections['changelog'] = self::get_changelog();
-            return $update;
-        });
-
-        // Add custom update notification message
-        add_filter('puc_pre_inject_info-' . $update_checker->getUniqueName(), function ($info) {
-            if (isset($info->sections['changelog'])) {
-                $info->sections['changelog'] = self::get_changelog();
+        add_filter(
+            'puc_request_info_result-wp-oauth-debugger',
+            function ($update) {
+                if (is_object($update) && isset($update->sections)) {
+                    $update->sections['changelog'] = self::get_changelog();
+                } elseif (is_array($update) && isset($update['sections'])) {
+                    $update['sections']['changelog'] = self::get_changelog();
+                }
+                return $update;
             }
-            return $info;
-        });
+        );
+
+        // Add custom query args
+        add_filter(
+            'puc_request_info_query_args-wp-oauth-debugger',
+            function ($queryArgs) {
+                $queryArgs['plugin'] = 'wp-oauth-debugger';
+                return $queryArgs;
+            }
+        );
     }
 
     /**
@@ -64,13 +72,37 @@ class UpdateChecker {
      *
      * @return string
      */
-    private static function get_changelog() {
+    public static function get_changelog() {
         $changelog_file = WP_OAUTH_DEBUGGER_PLUGIN_DIR . 'CHANGELOG.md';
 
         if (file_exists($changelog_file)) {
             $changelog = file_get_contents($changelog_file);
-            // Convert markdown to HTML
-            $changelog = wpautop($changelog);
+
+            // Simple markdown to HTML conversion
+            // First, do the headings
+            $changelog = preg_replace('/^#\s+(.*?)$/m', '<h1>$1</h1>', $changelog);
+            $changelog = preg_replace('/^##\s+(.*?)$/m', '<h2>$1</h2>', $changelog);
+            $changelog = preg_replace('/^###\s+(.*?)$/m', '<h3>$1</h3>', $changelog);
+
+            // Then, do the list items
+            $changelog = preg_replace('/^-\s+(.*?)$/m', '<li>$1</li>', $changelog);
+
+            // Convert newlines to paragraphs, but not within headings or list items
+            $changelog = preg_replace('/(?<!<\/h[1-6]>|<\/li>)\n\n(?!<h[1-6]>|<li>)/s', '</p><p>', $changelog);
+            $changelog = '<p>' . $changelog . '</p>';
+
+            // Clean up any double paragraph tags
+            $changelog = str_replace('<p><p>', '<p>', $changelog);
+            $changelog = str_replace('</p></p>', '</p>', $changelog);
+
+            // Make sure headings and list items aren't wrapped in paragraph tags
+            $changelog = str_replace('<p><h', '<h', $changelog);
+            $changelog = str_replace('</h1></p>', '</h1>', $changelog);
+            $changelog = str_replace('</h2></p>', '</h2>', $changelog);
+            $changelog = str_replace('</h3></p>', '</h3>', $changelog);
+            $changelog = str_replace('<p><li>', '<li>', $changelog);
+            $changelog = str_replace('</li></p>', '</li>', $changelog);
+
             return $changelog;
         }
 

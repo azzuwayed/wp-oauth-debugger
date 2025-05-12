@@ -1,4 +1,4 @@
-(function($) {
+(function ($) {
     'use strict';
 
     class OAuthTimeline {
@@ -37,7 +37,7 @@
                 zooming_animation_ratio: 0.5,
                 zoom_sequence: [0.5, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89],
                 language: 'en',
-                theme: 'light'
+                theme: 'light',
             };
 
             this.timeline = new TL.Timeline(this.container, [], options);
@@ -49,40 +49,43 @@
                 type: 'line',
                 data: {
                     labels: [],
-                    datasets: [{
-                        label: oauthDebug.i18n.request,
-                        data: [],
-                        borderColor: '#2271b1',
-                        tension: 0.1
-                    }, {
-                        label: oauthDebug.i18n.response,
-                        data: [],
-                        borderColor: '#00a32a',
-                        tension: 0.1
-                    }]
+                    datasets: [
+                        {
+                            label: oauthDebug.i18n.request,
+                            data: [],
+                            borderColor: '#2271b1',
+                            tension: 0.1,
+                        },
+                        {
+                            label: oauthDebug.i18n.response,
+                            data: [],
+                            borderColor: '#00a32a',
+                            tension: 0.1,
+                        },
+                    ],
                 },
                 options: {
                     responsive: true,
                     interaction: {
                         intersect: false,
-                        mode: 'index'
+                        mode: 'index',
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'Response Time (ms)'
-                            }
+                                text: 'Response Time (ms)',
+                            },
                         },
                         x: {
                             title: {
                                 display: true,
-                                text: 'Time'
-                            }
-                        }
-                    }
-                }
+                                text: 'Time',
+                            },
+                        },
+                    },
+                },
             });
         }
 
@@ -150,14 +153,14 @@
                 type: 'POST',
                 data: {
                     action: 'oauth_debug_get_updates',
-                    nonce: oauthDebug.nonce
+                    nonce: oauthDebug.nonce,
                 },
                 success: (response) => {
                     if (response.success && response.data) {
                         this.updateTimeline(response.data);
                         this.updateChart(response.data);
                     }
-                }
+                },
             });
         }
 
@@ -178,26 +181,26 @@
             return {
                 title: {
                     text: {
-                        headline: oauthDebug.i18n.timelineTitle
-                    }
+                        headline: oauthDebug.i18n.timelineTitle,
+                    },
                 },
-                events: data.map(event => ({
+                events: data.map((event) => ({
                     start_date: {
                         year: new Date(event.timestamp).getFullYear(),
                         month: new Date(event.timestamp).getMonth() + 1,
                         day: new Date(event.timestamp).getDate(),
                         hour: new Date(event.timestamp).getHours(),
                         minute: new Date(event.timestamp).getMinutes(),
-                        second: new Date(event.timestamp).getSeconds()
+                        second: new Date(event.timestamp).getSeconds(),
                     },
                     text: {
                         headline: event.message,
-                        text: this.formatEventDetails(event)
+                        text: this.formatEventDetails(event),
                     },
                     group: event.type,
                     display_date: event.timestamp,
-                    background: this.getEventColor(event)
-                }))
+                    background: this.getEventColor(event),
+                })),
             };
         }
 
@@ -206,7 +209,7 @@
             const requestTimes = [];
             const responseTimes = [];
 
-            data.forEach(event => {
+            data.forEach((event) => {
                 if (event.type === 'request' || event.type === 'response') {
                     labels.push(event.timestamp);
                     if (event.type === 'request') {
@@ -235,7 +238,7 @@
             const colors = {
                 request: '#2271b1',
                 response: '#00a32a',
-                error: '#d63638'
+                error: '#d63638',
             };
             return colors[event.type] || '#666';
         }
@@ -257,19 +260,19 @@
 
             $.post(oauthDebug.ajaxurl, {
                 action: 'oauth_debugger_clear_logs',
-                nonce: button.data('nonce')
+                nonce: button.data('nonce'),
             })
-            .done((response) => {
-                if (response.success) {
-                    $('.oauth-debugger-logs-container').html(
-                        '<p class="oauth-debugger-notice">' + oauthDebug.i18n.noLogs + '</p>'
-                    );
-                } else {
-                    alert(response.data || oauthDebug.i18n.error);
-                }
-            })
-            .fail(() => alert(oauthDebug.i18n.error))
-            .always(() => button.prop('disabled', false));
+                .done((response) => {
+                    if (response.success) {
+                        $('.oauth-debugger-logs-container').html(
+                            '<p class="oauth-debugger-notice">' + oauthDebug.i18n.noLogs + '</p>'
+                        );
+                    } else {
+                        alert(response.data || oauthDebug.i18n.error);
+                    }
+                })
+                .fail(() => alert(oauthDebug.i18n.error))
+                .always(() => button.prop('disabled', false));
         }
 
         handleDeleteToken(button) {
@@ -282,20 +285,20 @@
             $.post(oauthDebug.ajaxurl, {
                 action: 'oauth_debugger_delete_token',
                 token_id: button.data('token-id'),
-                nonce: button.data('nonce')
+                nonce: button.data('nonce'),
             })
-            .done((response) => {
-                if (response.success) {
-                    button.closest('.oauth-debugger-session').fadeOut(400, () => {
-                        button.closest('.oauth-debugger-session').remove();
-                        this.updateSessionCount();
-                    });
-                } else {
-                    alert(response.data || oauthDebug.i18n.error);
-                }
-            })
-            .fail(() => alert(oauthDebug.i18n.error))
-            .always(() => button.prop('disabled', false));
+                .done((response) => {
+                    if (response.success) {
+                        button.closest('.oauth-debugger-session').fadeOut(400, () => {
+                            button.closest('.oauth-debugger-session').remove();
+                            this.updateSessionCount();
+                        });
+                    } else {
+                        alert(response.data || oauthDebug.i18n.error);
+                    }
+                })
+                .fail(() => alert(oauthDebug.i18n.error))
+                .always(() => button.prop('disabled', false));
         }
 
         updateSessionCount() {
@@ -319,5 +322,4 @@
     $(document).ready(() => {
         window.oauthTimeline = new OAuthTimeline('oauth-debugger-timeline');
     });
-
 })(jQuery);

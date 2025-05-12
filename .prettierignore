@@ -1,0 +1,28 @@
+# Dependencies
+/node_modules
+/vendor
+
+# Build directories
+/build
+/dist
+/logs
+/backups
+
+# WordPress files
+/wp-admin
+/wp-includes
+/wp-content
+
+# Generated files
+*.min.js
+*.min.css
+*.asset.php
+*.map
+
+# Other files to ignore
+composer.lock
+package-lock.json
+*.log
+.phpcs-cache
+.phplint-cache
+.phpstan-cache

@@ -90,6 +90,64 @@ The plugin provides REST API endpoints for programmatic access:
 - Rate limiting is implemented to prevent abuse
 - Security headers are verified and reported
 
+## Development
+
+### Project Structure
+
+- `includes/` - Plugin source code
+- `assets/` - Static assets (JS, CSS, images)
+- `languages/` - Translations
+- `scripts/` - Development and build scripts
+- `tests/` - Test suites for the plugin
+- `docs/` - Developer documentation
+- `logs/` - Build and debug logs
+- `backups/` - Backup files
+
+### Scripts
+
+The plugin includes several utility scripts for development and deployment:
+
+- `composer test` - Run unit and integration tests
+- `composer build` - Build the plugin for deployment
+- `composer update-deps` - Update dependencies
+- `composer release` - Create a release package
+
+### Running Tests
+
+To set up the WordPress test environment and run all plugin tests:
+
+```bash
+composer test
+```
+
+This will:
+
+- Automatically set up the WordPress test suite if needed
+- Suppress deprecation, notice, and warning messages for cleaner output
+- Run all unit and integration tests
+
+To reset the test environment:
+
+```bash
+rm -rf /tmp/wordpress-tests-lib
+composer setup-tests
+```
+
+### Building the Plugin
+
+To build a deployment-ready version of the plugin:
+
+```bash
+composer build
+```
+
+The build process:
+
+- Installs production-only dependencies
+- Optimizes the autoloader
+- Creates a zip file ready for installation
+- Generates checksums and build info
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -105,27 +163,3 @@ Abdullah Alzuwayed
 ## Support
 
 For support, please open an issue on the GitHub repository.
-
-## Running Tests
-
-To set up the WordPress test environment and run all plugin tests:
-
-```bash
-./test.sh
-```
-
-- This script will automatically set up the WordPress test suite if needed.
-- It will suppress deprecation, notice, and warning messages for a cleaner output.
-- If you need to reset the test environment, delete `/tmp/wordpress-tests-lib` and re-run the script.
-
-You can also run the setup manually:
-
-```bash
-composer run setup-tests
-```
-
-And then run PHPUnit directly:
-
-```bash
-vendor/bin/phpunit
-```

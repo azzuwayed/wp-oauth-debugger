@@ -2,25 +2,32 @@
 
 namespace WP_OAuth_Debugger\Tests\Support;
 
-use Mockery;
+use Brain\Monkey;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 /**
  * Base test case for unit tests.
+ *
+ * This uses Brain\Monkey without loading the WordPress environment
+ * to enable true isolation for unit tests.
  */
-abstract class UnitTestCase extends TestCase {
+abstract class UnitTestCase extends PHPUnitTestCase {
+    use MockeryPHPUnitIntegration;
+
     /**
      * Set up the test environment.
      */
     protected function setUp(): void {
         parent::setUp();
-        Mockery::setUp();
+        Monkey\setUp();
     }
 
     /**
      * Tear down the test environment.
      */
     protected function tearDown(): void {
-        Mockery::close();
+        Monkey\tearDown();
         parent::tearDown();
     }
 
@@ -31,7 +38,7 @@ abstract class UnitTestCase extends TestCase {
      * @return \Mockery\MockInterface
      */
     protected function mock($class) {
-        return Mockery::mock($class);
+        return \Mockery::mock($class);
     }
 
     /**
@@ -41,6 +48,13 @@ abstract class UnitTestCase extends TestCase {
      * @return \Mockery\MockInterface
      */
     protected function spy($class) {
-        return Mockery::spy($class);
+        return \Mockery::spy($class);
+    }
+
+    /**
+     * Assert string contains text.
+     */
+    public function assertStringContains($needle, $haystack) {
+        $this->assertStringContainsString($needle, $haystack);
     }
 }

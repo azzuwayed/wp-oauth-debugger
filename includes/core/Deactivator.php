@@ -23,26 +23,26 @@ namespace WP_OAuth_Debugger\Core;
  */
 class Deactivator {
 
-    /**
-     * Clean up plugin data on deactivation.
-     *
-     * @since    1.0.0
-     */
-    public static function deactivate() {
-        // Clear scheduled events
-        \wp_clear_scheduled_hook('oauth_debugger_cleanup_logs');
-        
-        // Clear transients
-        \delete_transient('oauth_debugger_last_scan');
-        \delete_transient('oauth_debugger_security_status');
-        
-        // Optionally clear debug logs if setting is enabled
-        if (\get_option('oauth_debugger_clear_logs_on_deactivate', false)) {
-            global $wpdb;
-            $wpdb->query("DELETE FROM {$wpdb->prefix}oauth_debugger_logs");
-        }
-        
-        // Flush rewrite rules
-        \flush_rewrite_rules();
-    }
-} 
+	/**
+	 * Clean up plugin data on deactivation.
+	 *
+	 * @since    1.0.0
+	 */
+	public static function deactivate() {
+		// Clear scheduled events
+		\wp_clear_scheduled_hook( 'oauth_debugger_cleanup_logs' );
+
+		// Clear transients
+		\delete_transient( 'oauth_debugger_last_scan' );
+		\delete_transient( 'oauth_debugger_security_status' );
+
+		// Optionally clear debug logs if setting is enabled
+		if ( \get_option( 'oauth_debugger_clear_logs_on_deactivate', false ) ) {
+			global $wpdb;
+			$wpdb->query( "DELETE FROM {$wpdb->prefix}oauth_debugger_logs" );
+		}
+
+		// Flush rewrite rules
+		\flush_rewrite_rules();
+	}
+}

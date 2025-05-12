@@ -37,21 +37,42 @@ abstract class IntegrationTestCase extends TestCase {
     }
 
     /**
-     * Create a test user.
+     * Create a test user with a unique username and email.
      *
      * @param array $args Optional. User arguments.
      * @return int User ID.
+     * @throws \Exception If user creation fails.
      */
     protected function createTestUser($args = []): int {
+        // Create unique identifier for this test user
+        $unique_id = uniqid();
+
         $defaults = [
-            'user_login' => 'testuser',
+            'user_login' => 'testuser_' . $unique_id,
             'user_pass'  => 'testpass',
-            'user_email' => 'test@example.com',
+            'user_email' => 'test_' . $unique_id . '@example.com',
             'role'       => 'administrator',
         ];
 
         $args = wp_parse_args($args, $defaults);
-        return wp_insert_user($args);
+
+        // If custom login or email was provided, make them unique too
+        if (isset($args['user_login']) && strpos($args['user_login'], 'testuser_') !== 0) {
+            $args['user_login'] = $args['user_login'] . '_' . $unique_id;
+        }
+
+        if (isset($args['user_email']) && strpos($args['user_email'], 'test_') !== 0) {
+            $email_parts = explode('@', $args['user_email']);
+            $args['user_email'] = $email_parts[0] . '_' . $unique_id . '@' . ($email_parts[1] ?? 'example.com');
+        }
+
+        $result = wp_insert_user($args);
+
+        if (is_wp_error($result)) {
+            throw new \Exception('Failed to create test user: ' . $result->get_error_message());
+        }
+
+        return $result;
     }
 
     /**

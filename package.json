@@ -1,0 +1,35 @@
+{
+  "name": "wp-oauth-debugger",
+  "version": "1.1.1",
+  "description": "A comprehensive debugging and monitoring tool for OAuth implementations in WordPress. This plugin helps developers and administrators track, debug, and secure OAuth authentication flows in their WordPress applications.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "prettier:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/azzuwayed/wp-oauth-debugger.git"
+  },
+  "keywords": [
+    "wordpress",
+    "oauth",
+    "debugger",
+    "debug",
+    "plugin"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/azzuwayed/wp-oauth-debugger/issues"
+  },
+  "homepage": "https://github.com/azzuwayed/wp-oauth-debugger#readme",
+  "devDependencies": {
+    "prettier": "^3.5.3"
+  }
+}

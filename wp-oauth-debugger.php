@@ -1,18 +1,21 @@
 <?php
 
 /**
- * Plugin Name: OAuth Debugger
- * Plugin URI:
+ * Plugin Name: WP OAuth Debugger
+ * Plugin URI: https://github.com/azzuwayed/wp-oauth-debugger
  * Description: A comprehensive debugging and monitoring tool for OAuth implementations in WordPress.
- * Version: 1.0.0
+ * Version: 1.1.1
  * Requires at least: 6.5
  * Requires PHP: 8.3
  * Author: Abdullah Alzuwayed
- * Author URI:
+ * Author URI: https://github.com/azzuwayed
+ * Author Email: azzuwayed@gmail.com
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: wp-oauth-debugger
  * Domain Path: /languages
+ * GitHub Plugin URI: https://github.com/azzuwayed/wp-oauth-debugger
+ * Update URI: https://github.com/azzuwayed/wp-oauth-debugger
  *
  * @package WP_OAuth_Debugger
  */
@@ -23,7 +26,7 @@ if (!defined('WPINC')) {
 }
 
 // Plugin version
-define('WP_OAUTH_DEBUGGER_VERSION', '1.0.0');
+define('WP_OAUTH_DEBUGGER_VERSION', '1.1.1');
 define('WP_OAUTH_DEBUGGER_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WP_OAUTH_DEBUGGER_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WP_OAUTH_DEBUGGER_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -118,7 +121,7 @@ function oauth_debugger_admin_notices() {
         foreach ($validation_results['errors'] as $error) {
 ?>
             <div class="notice notice-error">
-                <p><strong><?php _e('OAuth Debugger Error:', 'wp-oauth-debugger'); ?></strong> <?php echo esc_html($error); ?></p>
+                <p><strong><?php _e('WP OAuth Debugger Error:', 'wp-oauth-debugger'); ?></strong> <?php echo esc_html($error); ?></p>
             </div>
         <?php
         }
@@ -129,7 +132,7 @@ function oauth_debugger_admin_notices() {
         foreach ($validation_results['warnings'] as $warning) {
         ?>
             <div class="notice notice-warning">
-                <p><strong><?php _e('OAuth Debugger Warning:', 'wp-oauth-debugger'); ?></strong> <?php echo esc_html($warning); ?></p>
+                <p><strong><?php _e('WP OAuth Debugger Warning:', 'wp-oauth-debugger'); ?></strong> <?php echo esc_html($warning); ?></p>
             </div>
         <?php
         }
@@ -144,7 +147,7 @@ add_action('admin_notices', 'oauth_debugger_admin_notices');
  * The code that runs during plugin activation.
  */
 function activate_oauth_debugger() {
-    error_log('OAuth Debugger: Starting activation...');
+    error_log('WP OAuth Debugger: Starting activation...');
 
     // Load the validator class directly since autoloader might not be available yet
     require_once WP_OAUTH_DEBUGGER_PLUGIN_DIR . 'includes/Core/Validator.php';
@@ -162,12 +165,12 @@ function activate_oauth_debugger() {
     // If validation failed, deactivate the plugin
     if (!$is_valid) {
         deactivate_plugins(plugin_basename(__FILE__));
-        error_log('OAuth Debugger: Activation failed due to validation errors');
+        error_log('WP OAuth Debugger: Activation failed due to validation errors');
         return;
     }
 
     // If we get here, validation passed, proceed with activation
-    error_log('OAuth Debugger: Validation passed, proceeding with activation');
+    error_log('WP OAuth Debugger: Validation passed, proceeding with activation');
 
     try {
         // Load autoloader
@@ -179,9 +182,9 @@ function activate_oauth_debugger() {
 
         // Run the actual activation
         WP_OAuth_Debugger\Core\Activator::activate();
-        error_log('OAuth Debugger: Activation completed successfully');
+        error_log('WP OAuth Debugger: Activation completed successfully');
     } catch (Exception $e) {
-        error_log('OAuth Debugger: Activation error: ' . $e->getMessage());
+        error_log('WP OAuth Debugger: Activation error: ' . $e->getMessage());
         deactivate_plugins(plugin_basename(__FILE__));
         update_option('oauth_debugger_validation_results', array(
             'errors' => array(sprintf(
@@ -224,7 +227,7 @@ function run_oauth_debugger() {
         add_action('admin_notices', function () {
         ?>
             <div class="notice notice-error">
-                <p><strong><?php _e('OAuth Debugger Error:', 'wp-oauth-debugger'); ?></strong>
+                <p><strong><?php _e('WP OAuth Debugger Error:', 'wp-oauth-debugger'); ?></strong>
                     <?php _e('There was a problem loading the plugin autoloader. The plugin will attempt to continue with limited functionality.', 'wp-oauth-debugger'); ?>
                 </p>
             </div>
@@ -241,11 +244,11 @@ function run_oauth_debugger() {
             throw new Exception('Core class not found. Plugin initialization failed.');
         }
     } catch (Exception $e) {
-        error_log('OAuth Debugger Error: ' . $e->getMessage());
+        error_log('WP OAuth Debugger Error: ' . $e->getMessage());
         add_action('admin_notices', function () use ($e) {
         ?>
             <div class="notice notice-error">
-                <p><strong><?php _e('OAuth Debugger Error:', 'wp-oauth-debugger'); ?></strong>
+                <p><strong><?php _e('WP OAuth Debugger Error:', 'wp-oauth-debugger'); ?></strong>
                     <?php echo esc_html($e->getMessage()); ?>
                 </p>
             </div>

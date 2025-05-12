@@ -128,7 +128,20 @@
         "**/wp-content/backups": true,
         "**/wp-content/debug.log": true,
         "**/vendor/**": true,
-        "**/composer.lock": true
+        "**/composer.lock": true,
+        "**/logs/**": true,
+        "**/backups/**": true,
+        "**/build/**": true,
+        "**/.phpcs-cache": true,
+        "**/.phplint-cache": true,
+        "**/.phpstan-cache": true,
+        "**/.prettier-cache": true,
+        "**/.phpunit.cache": true,
+        "**/.phpunit.result.cache": true,
+        "**/.phpbench": true,
+        "**/coverage/**": true,
+        "**/coverage-merged/**": true,
+        "**/infection.log": true
     },
 
     // Terminal Settings
@@ -152,7 +165,18 @@
         "**/node_modules/**": true,
         "**/wp-content/uploads/**": true,
         "**/wp-content/cache/**": true,
-        "**/composer.lock": true
+        "**/composer.lock": true,
+        "**/logs/**": true,
+        "**/backups/**": true,
+        "**/build/**": true,
+        "**/.phpcs-cache": true,
+        "**/.phplint-cache": true,
+        "**/.phpstan-cache": true,
+        "**/.prettier-cache": true,
+        "**/.phpunit.cache/**": true,
+        "**/.phpbench/**": true,
+        "**/coverage/**": true,
+        "**/coverage-merged/**": true
     },
 
     // JSON Settings (for composer.json)
@@ -167,6 +191,7 @@
 
     // File Explorer Settings
     "files.exclude": {
+        // Dependencies and build artifacts
         "**/vendor": true,
         "**/node_modules": true,
         "**/.git": true,
@@ -175,12 +200,56 @@
         "**/CVS": true,
         "**/.DS_Store": true,
         "**/Thumbs.db": true,
+        "**/build": false,
+        "**/builds": false,
+        "**/logs": false,
+        "**/backups": false,
+        "**/coverage": false,
+        "**/coverage-merged": false,
+
+        // WordPress specific
         "**/wp-content/uploads": false,
         "**/wp-content/cache": true,
         "**/wp-content/upgrade": true,
         "**/wp-content/backup-db": true,
         "**/wp-content/backups": true,
         "**/wp-content/debug.log": false,
-        "**/composer.lock": true
+
+        // Configuration and lock files
+        "**/composer.lock": true,
+        "**/package-lock.json": true,
+        "**/phpstan.neon": true,
+        "**/psalm.xml": true,
+        "**/infection.json": true,
+        "**/phpbench.json": true,
+        "**/.phpcs.xml.dist": true,
+        "**/.phpcs.xml": true,
+        "**/.prettierrc": true,
+        "**/.prettierignore": true,
+        "**/.editorconfig": true,
+        "**/.gitignore": true,
+        "**/.github": true,
+
+        // Cache files
+        "**/.phpcs-cache": true,
+        "**/.phplint-cache": true,
+        "**/.phpstan-cache": true,
+        "**/.prettier-cache": true,
+        "**/.phpunit.cache": true,
+        "**/.phpunit.result.cache": true,
+        "**/.phpbench": true,
+        "**/infection.log": true,
+
+        // Documentation (optional, uncomment if you want to hide)
+        // "**/docs": true,
+
+        // Scripts and their symlinks
+        "**/scripts": false,
+        "build-plugin": true,
+        "test": true,
+        "release": true,
+
+        // Test files (optional, uncomment if you want to hide)
+        // "**/tests": true
     }
 }

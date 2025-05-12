@@ -1,17 +1,42 @@
+# Ignore Composer dependencies
 /vendor/
-/node_modules/
-.DS_Store
-*.log
-*.cache
-.env
-.env.*
-!.env.example
-composer.lock
-package-lock.json
-.phpunit.result.cache
-coverage/
-build/
-dist/.bak
 
-# Documentation (excluded from releases)
+# Ignore build artifacts
+/build/
+/builds/
+
+# Ignore logs and backups
+/logs/
+/backups/
+
+# Ignore scripts (not needed in release)
+/scripts/
+
+# Ignore test output
+/coverage/
+/coverage-merged/
+/.phpunit.cache/
+/.phpbench/
+/infection.log
+
+# Ignore IDE/editor/project files
+/.vscode/
+.DS_Store
+
+# Ignore config and cache
+composer.lock
+phpstan.neon
+psalm.xml
+infection.json
+phpbench.json
+.phpcs-cache
+.phplint-cache
+.phpstan-cache
+
+# Code Quality
+node_modules/
+package-lock.json
+.prettier-cache/
+
+# Ignore documentation from releases
 /docs/
