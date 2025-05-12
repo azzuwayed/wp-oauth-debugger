@@ -142,6 +142,20 @@
         "**/coverage/**": true,
         "**/coverage-merged/**": true,
         "**/infection.log": true
+        "**/composer.lock": true,
+        "**/logs/**": true,
+        "**/backups/**": true,
+        "**/build/**": true,
+        "**/.phpcs-cache": true,
+        "**/.phplint-cache": true,
+        "**/.phpstan-cache": true,
+        "**/.prettier-cache": true,
+        "**/.phpunit.cache": true,
+        "**/.phpunit.result.cache": true,
+        "**/.phpbench": true,
+        "**/coverage/**": true,
+        "**/coverage-merged/**": true,
+        "**/infection.log": true
     },
 
     // Terminal Settings
@@ -177,6 +191,18 @@
         "**/.phpbench/**": true,
         "**/coverage/**": true,
         "**/coverage-merged/**": true
+        "**/composer.lock": true,
+        "**/logs/**": true,
+        "**/backups/**": true,
+        "**/build/**": true,
+        "**/.phpcs-cache": true,
+        "**/.phplint-cache": true,
+        "**/.phpstan-cache": true,
+        "**/.prettier-cache": true,
+        "**/.phpunit.cache/**": true,
+        "**/.phpbench/**": true,
+        "**/coverage/**": true,
+        "**/coverage-merged/**": true
     },
 
     // JSON Settings (for composer.json)
@@ -191,6 +217,7 @@
 
     // File Explorer Settings
     "files.exclude": {
+        // Dependencies and build artifacts
         // Dependencies and build artifacts
         "**/vendor": true,
         "**/node_modules": true,
@@ -214,6 +241,43 @@
         "**/wp-content/backup-db": true,
         "**/wp-content/backups": true,
         "**/wp-content/debug.log": false,
+
+        // Configuration and lock files
+        "**/composer.lock": true,
+        "**/package-lock.json": true,
+        "**/phpstan.neon": true,
+        "**/psalm.xml": true,
+        "**/infection.json": true,
+        "**/phpbench.json": true,
+        "**/.phpcs.xml.dist": true,
+        "**/.phpcs.xml": true,
+        "**/.prettierrc": true,
+        "**/.prettierignore": true,
+        "**/.editorconfig": true,
+        "**/.gitignore": true,
+        "**/.github": true,
+
+        // Cache files
+        "**/.phpcs-cache": true,
+        "**/.phplint-cache": true,
+        "**/.phpstan-cache": true,
+        "**/.prettier-cache": true,
+        "**/.phpunit.cache": true,
+        "**/.phpunit.result.cache": true,
+        "**/.phpbench": true,
+        "**/infection.log": true,
+
+        // Documentation (optional, uncomment if you want to hide)
+        // "**/docs": true,
+
+        // Scripts and their symlinks
+        "**/scripts": false,
+        "build-plugin": true,
+        "test": true,
+        "release": true,
+
+        // Test files (optional, uncomment if you want to hide)
+        // "**/tests": true
 
         // Configuration and lock files
         "**/composer.lock": true,

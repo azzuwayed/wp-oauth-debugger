@@ -31,6 +31,11 @@ define('WP_OAUTH_DEBUGGER_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WP_OAUTH_DEBUGGER_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WP_OAUTH_DEBUGGER_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
+// Debug constants
+define('OAUTH_DEBUG', true);
+define('OAUTH_DEBUG_LOG_LEVEL', 'info');
+define('OAUTH_DEBUG_LOG_RETENTION', 7);
+
 /**
  * Fallback autoloader for critical plugin classes.
  * This ensures core functionality works even if Composer's autoloader fails.
@@ -182,6 +187,13 @@ function activate_oauth_debugger() {
 
         // Run the actual activation
         WP_OAuth_Debugger\Core\Activator::activate();
+
+        // Ensure database tables are created
+        $result = WP_OAuth_Debugger\Core\Activator::setup_database();
+        if (!$result['success']) {
+            throw new Exception($result['message']);
+        }
+
         error_log('WP OAuth Debugger: Activation completed successfully');
     } catch (Exception $e) {
         error_log('WP OAuth Debugger: Activation error: ' . $e->getMessage());

@@ -4,6 +4,14 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
     exit;
 }
 
+// Check if we should remove all data
+$remove_all = get_option('oauth_debug_remove_all_on_uninstall', false);
+
+if (!$remove_all) {
+    // If the option is not set, exit without removing data
+    return;
+}
+
 // Load WordPress database functions if not already loaded
 if (!function_exists('get_option')) {
     require_once(ABSPATH . 'wp-includes/option.php');

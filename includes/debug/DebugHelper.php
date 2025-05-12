@@ -7,6 +7,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Handler\RotatingFileHandler;
 use WP_OAuth_Debugger\Core\Loader;
 use WP_OAuth_Debugger\Security\SecurityScanner;
+use WP_OAuth_Debugger\Security\SecurityChecker;
 
 /**
  * The core debugging functionality of the plugin.
@@ -29,7 +30,7 @@ class DebugHelper {
     /**
      * The security scanner instance.
      *
-     * @var SecurityScanner|null
+     * @var SecurityChecker|null
      */
     private $security_scanner = null;
 
@@ -67,22 +68,21 @@ class DebugHelper {
     /**
      * Get the security scanner instance.
      *
-     * @return SecurityScanner
+     * @return SecurityChecker
      */
     private function get_security_scanner() {
         if ($this->security_scanner === null) {
-            if (!class_exists('WP_OAuth_Debugger\Security\SecurityScanner')) {
-                // Try to load the class file directly if autoloader hasn't loaded it yet
-                $scanner_file = WP_OAUTH_DEBUGGER_PLUGIN_DIR . 'includes/Security/SecurityScanner.php';
-                if (file_exists($scanner_file)) {
-                    require_once $scanner_file;
-                }
-
-                if (!class_exists('WP_OAuth_Debugger\Security\SecurityScanner')) {
-                    throw new \RuntimeException('SecurityScanner class could not be loaded. Please ensure the autoloader is working correctly.');
-                }
+            // Try to load the class file directly if autoloader hasn't loaded it yet
+            $scanner_file = WP_OAUTH_DEBUGGER_PLUGIN_DIR . 'includes/Security/SecurityChecker.php';
+            if (file_exists($scanner_file)) {
+                require_once $scanner_file;
             }
-            $this->security_scanner = new \WP_OAuth_Debugger\Security\SecurityScanner($this);
+
+            if (!class_exists('WP_OAuth_Debugger\Security\SecurityChecker')) {
+                throw new \RuntimeException('SecurityChecker class could not be loaded. Please ensure the autoloader is working correctly.');
+            }
+
+            $this->security_scanner = new \WP_OAuth_Debugger\Security\SecurityChecker();
         }
         return $this->security_scanner;
     }
@@ -348,27 +348,9 @@ class DebugHelper {
      * @return array
      */
     public function get_security_status() {
-        $basic_status = array(
-            'environment' => $this->determine_environment(),
-            'ssl_enabled' => is_ssl(),
-            'secure_cookies' => defined('COOKIEPATH') && COOKIEPATH === '/',
-            'token_lifetime' => $this->get_token_lifetime(),
-            'pkce_support' => $this->check_pkce_support(),
-            'cors_enabled' => $this->check_cors_configuration(),
-            'rate_limiting' => $this->check_rate_limiting(),
-            'security_headers' => $this->check_security_headers()
-        );
-
-        // Get detailed security scan results
-        $scan_results = $this->get_security_scan();
-
-        return array_merge($basic_status, array(
-            'security_score' => $scan_results['security_score'],
-            'vulnerabilities' => $scan_results['vulnerabilities'],
-            'jwt_analysis' => $scan_results['jwt_analysis'],
-            'oauth_config' => $scan_results['oauth_config'],
-            'recommendations' => $scan_results['recommendations']
-        ));
+        // Initialize the security checker
+        $security_checker = new \WP_OAuth_Debugger\Security\SecurityChecker();
+        return $security_checker->get_security_status();
     }
 
     /**
@@ -647,5 +629,116 @@ class DebugHelper {
      */
     public function log_request() {
         // (Stub implementation.)
+    }
+
+    /**
+     * Get OAuth statistics
+     *
+     * @return array Statistics data
+     */
+    public function get_statistics() {
+        // Get recent logs
+        $logs = $this->get_recent_logs(500);
+        $active_tokens = $this->get_active_tokens();
+
+        // Default statistics
+        $stats = array(
+            'total_requests' => 0,
+            'auth_failures' => 0,
+            'active_tokens' => count($active_tokens),
+            'unique_clients' => 0,
+            'success_rate' => 0,
+            'requests_trend' => 0,
+            'failures_trend' => 0
+        );
+
+        // Count total requests
+        $stats['total_requests'] = count($logs);
+
+        // Count auth failures
+        $failures = 0;
+        foreach ($logs as $log) {
+            if ($log['level'] === 'ERROR' && strpos($log['message'], 'authentication failed') !== false) {
+                $failures++;
+            }
+        }
+        $stats['auth_failures'] = $failures;
+
+        // Calculate success rate if there are any requests
+        if ($stats['total_requests'] > 0) {
+            $success_rate = 100 - (($stats['auth_failures'] / $stats['total_requests']) * 100);
+            $stats['success_rate'] = round($success_rate, 1);
+        }
+
+        // Count unique clients
+        $client_ids = array();
+        foreach ($active_tokens as $token) {
+            if (!empty($token['client_id']) && !in_array($token['client_id'], $client_ids)) {
+                $client_ids[] = $token['client_id'];
+            }
+        }
+        $stats['unique_clients'] = count($client_ids);
+
+        // Mock trend data for now (in a real implementation this would compare to previous periods)
+        $stats['requests_trend'] = 5.2;
+        $stats['failures_trend'] = -2.1;
+
+        return $stats;
+    }
+
+    /**
+     * Get logs (alias of get_recent_logs)
+     *
+     * @param int $limit The number of logs to retrieve
+     * @return array
+     */
+    public function get_logs($limit = 100) {
+        return $this->get_recent_logs($limit);
+    }
+
+    /**
+     * Get unique OAuth clients
+     *
+     * @return array Unique client information
+     */
+    public function get_unique_clients() {
+        $active_tokens = $this->get_active_tokens();
+        $clients = array();
+
+        foreach ($active_tokens as $token) {
+            if (!empty($token['client_id']) && !isset($clients[$token['client_id']])) {
+                $clients[$token['client_id']] = array(
+                    'client_id' => $token['client_id'],
+                    'client_name' => isset($token['client_name']) ? $token['client_name'] : $token['client_id'],
+                    'token_count' => 1,
+                    'last_used' => isset($token['created_at']) ? $token['created_at'] : $token['id']
+                );
+            } elseif (!empty($token['client_id'])) {
+                $clients[$token['client_id']]['token_count']++;
+                // Update last used if newer
+                if (isset($token['created_at']) && $token['created_at'] > $clients[$token['client_id']]['last_used']) {
+                    $clients[$token['client_id']]['last_used'] = $token['created_at'];
+                }
+            }
+        }
+
+        return array_values($clients);
+    }
+
+    /**
+     * Get comprehensive environment information including security and configuration details.
+     *
+     * @return array Complete environment information
+     */
+    public function get_environment_info() {
+        return array(
+            'environment' => $this->determine_environment(),
+            'token_lifetime' => $this->get_token_lifetime(),
+            'pkce_support' => $this->check_pkce_support(),
+            'cors_configuration' => $this->check_cors_configuration(),
+            'rate_limiting' => $this->check_rate_limiting(),
+            'security_headers' => $this->check_security_headers(),
+            'server_info' => $this->get_server_info()
+        );
     }
 }
