@@ -40,3 +40,4 @@ package-lock.json
 
 # Ignore documentation from releases
 /docs/
+tests/.phpunit.result.cache

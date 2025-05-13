@@ -1,8 +1,7 @@
-
 /**
  * OAuth Debugger Admin JavaScript
  */
-(function($) {
+(function ($) {
     'use strict';
 
     /**
@@ -12,7 +11,7 @@
         /**
          * Initialize the app
          */
-        init: function() {
+        init: function () {
             this.initEventListeners();
             this.initTooltips();
             this.initTabs();
@@ -21,9 +20,9 @@
         /**
          * Initialize event listeners
          */
-        initEventListeners: function() {
+        initEventListeners: function () {
             // Clear logs
-            $('.oauth-debugger-clear-logs').on('click', function(e) {
+            $('.oauth-debugger-clear-logs').on('click', function (e) {
                 e.preventDefault();
                 if (confirm(oauthDebug.i18n.confirmClearLogs)) {
                     OAuthDebugger.clearLogs();
@@ -31,7 +30,7 @@
             });
 
             // Delete token
-            $('.oauth-debugger-delete-token').on('click', function(e) {
+            $('.oauth-debugger-delete-token').on('click', function (e) {
                 e.preventDefault();
                 const tokenId = $(this).data('token-id');
                 if (confirm(oauthDebug.i18n.confirmDeleteToken)) {
@@ -40,51 +39,71 @@
             });
 
             // View token details
-            $('.oauth-debugger-view-token').on('click', function(e) {
+            $('.oauth-debugger-view-token').on('click', function (e) {
                 e.preventDefault();
                 const tokenId = $(this).data('token-id');
                 OAuthDebugger.viewTokenDetails(tokenId);
             });
 
             // Auto-refresh toggle
-            $('#oauth-debugger-auto-refresh').on('change', function() {
+            $('#oauth-debugger-auto-refresh').on('change', function () {
                 OAuthDebugger.toggleAutoRefresh($(this).is(':checked'));
             });
 
             // Refresh button
-            $('.oauth-debugger-refresh').on('click', function(e) {
+            $('.oauth-debugger-refresh').on('click', function (e) {
                 e.preventDefault();
                 OAuthDebugger.refreshData();
             });
 
             // Database setup button
-            $('.oauth-debugger-setup-database').on('click', function(e) {
+            $('.oauth-debugger-setup-database').on('click', function (e) {
                 e.preventDefault();
-                if (confirm(oauthDebug.i18n.confirmDatabaseSetup || 'Are you sure you want to set up the database?')) {
+                if (
+                    confirm(
+                        oauthDebug.i18n.confirmDatabaseSetup ||
+                            'Are you sure you want to set up the database?'
+                    )
+                ) {
                     OAuthDebugger.setupDatabase();
                 }
             });
 
             // Empty database button
-            $('.oauth-debugger-empty-database').on('click', function(e) {
+            $('.oauth-debugger-empty-database').on('click', function (e) {
                 e.preventDefault();
-                if (confirm(oauthDebug.i18n.confirmEmptyDatabase || 'Are you sure you want to empty the database? This will remove all logs and data.')) {
+                if (
+                    confirm(
+                        oauthDebug.i18n.confirmEmptyDatabase ||
+                            'Are you sure you want to empty the database? This will remove all logs and data.'
+                    )
+                ) {
                     OAuthDebugger.emptyDatabase();
                 }
             });
 
             // Remove database button
-            $('.oauth-debugger-remove-database').on('click', function(e) {
+            $('.oauth-debugger-remove-database').on('click', function (e) {
                 e.preventDefault();
-                if (confirm(oauthDebug.i18n.confirmRemoveDatabase || 'Are you sure you want to remove the database tables? This cannot be undone.')) {
+                if (
+                    confirm(
+                        oauthDebug.i18n.confirmRemoveDatabase ||
+                            'Are you sure you want to remove the database tables? This cannot be undone.'
+                    )
+                ) {
                     OAuthDebugger.removeDatabase();
                 }
             });
 
             // Reset plugin button
-            $('.oauth-debugger-reset-plugin').on('click', function(e) {
+            $('.oauth-debugger-reset-plugin').on('click', function (e) {
                 e.preventDefault();
-                if (confirm(oauthDebug.i18n.confirmResetPlugin || 'Are you sure you want to reset all plugin data? This will remove all settings, logs, and database tables. This cannot be undone.')) {
+                if (
+                    confirm(
+                        oauthDebug.i18n.confirmResetPlugin ||
+                            'Are you sure you want to reset all plugin data? This will remove all settings, logs, and database tables. This cannot be undone.'
+                    )
+                ) {
                     OAuthDebugger.resetPlugin();
                 }
             });
@@ -95,7 +114,7 @@
         /**
          * Initialize tooltips
          */
-        initTooltips: function() {
+        initTooltips: function () {
             if ($.fn.tooltip) {
                 $('.oauth-debugger-tooltip').tooltip();
             }
@@ -104,13 +123,13 @@
         /**
          * Initialize tabs
          */
-        initTabs: function() {
+        initTabs: function () {
             // Don't interfere with settings page tabs which use server-side navigation
             if (window.location.href.indexOf('page=oauth-debugger-settings') > -1) {
                 return;
             }
 
-            $('.oauth-debugger-tabs-nav a').on('click', function(e) {
+            $('.oauth-debugger-tabs-nav a').on('click', function (e) {
                 // Only handle tab clicks for non-settings pages
                 if ($(this).attr('href').indexOf('page=oauth-debugger-settings') > -1) {
                     return; // Let the browser handle the navigation
@@ -147,15 +166,15 @@
         /**
          * Clear all logs
          */
-        clearLogs: function() {
+        clearLogs: function () {
             $.ajax({
                 url: ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'oauth_debugger_clear_logs',
-                    nonce: oauthDebug.nonce
+                    nonce: oauthDebug.nonce,
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         alert(oauthDebug.i18n.logsCleared);
                         location.reload();
@@ -163,9 +182,9 @@
                         alert(oauthDebug.i18n.error);
                     }
                 },
-                error: function() {
+                error: function () {
                     alert(oauthDebug.i18n.error);
-                }
+                },
             });
         },
 
@@ -174,16 +193,16 @@
          *
          * @param {string} tokenId The token ID to delete
          */
-        deleteToken: function(tokenId) {
+        deleteToken: function (tokenId) {
             $.ajax({
                 url: ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'oauth_debugger_delete_token',
                     nonce: oauthDebug.nonce,
-                    token_id: tokenId
+                    token_id: tokenId,
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         alert(oauthDebug.i18n.tokenDeleted);
                         location.reload();
@@ -191,9 +210,9 @@
                         alert(oauthDebug.i18n.error);
                     }
                 },
-                error: function() {
+                error: function () {
                     alert(oauthDebug.i18n.error);
-                }
+                },
             });
         },
 
@@ -202,7 +221,7 @@
          *
          * @param {string} tokenId The token ID to view
          */
-        viewTokenDetails: function(tokenId) {
+        viewTokenDetails: function (tokenId) {
             // Implementation will depend on UI requirements
             console.log('View token details for: ' + tokenId);
         },
@@ -212,14 +231,14 @@
          *
          * @param {boolean} enabled Whether auto-refresh is enabled
          */
-        toggleAutoRefresh: function(enabled) {
+        toggleAutoRefresh: function (enabled) {
             if (this.refreshInterval) {
                 clearInterval(this.refreshInterval);
                 this.refreshInterval = null;
             }
 
             if (enabled) {
-                this.refreshInterval = setInterval(function() {
+                this.refreshInterval = setInterval(function () {
                     OAuthDebugger.refreshData();
                 }, 30000); // Refresh every 30 seconds
             }
@@ -228,25 +247,27 @@
         /**
          * Refresh data
          */
-        refreshData: function() {
+        refreshData: function () {
             location.reload();
         },
 
         /**
          * Setup database
          */
-        setupDatabase: function() {
+        setupDatabase: function () {
             $.ajax({
                 url: ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'oauth_debugger_setup_database',
-                    nonce: oauthDebug.nonce
+                    nonce: oauthDebug.nonce,
                 },
-                beforeSend: function() {
-                    $('.oauth-debugger-setup-database').prop('disabled', true).text(oauthDebug.i18n.processing || 'Processing...');
+                beforeSend: function () {
+                    $('.oauth-debugger-setup-database')
+                        .prop('disabled', true)
+                        .text(oauthDebug.i18n.processing || 'Processing...');
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         alert(response.data.message);
                         location.reload();
@@ -254,30 +275,37 @@
                         alert(response.data.message);
                     }
                 },
-                error: function() {
+                error: function () {
                     alert(oauthDebug.i18n.error || 'An error occurred.');
                 },
-                complete: function() {
-                    $('.oauth-debugger-setup-database').prop('disabled', false).html('<span class="dashicons dashicons-database-add"></span> ' + (oauthDebug.i18n.setupDatabase || 'Setup Database'));
-                }
+                complete: function () {
+                    $('.oauth-debugger-setup-database')
+                        .prop('disabled', false)
+                        .html(
+                            '<span class="dashicons dashicons-database-add"></span> ' +
+                                (oauthDebug.i18n.setupDatabase || 'Setup Database')
+                        );
+                },
             });
         },
 
         /**
          * Empty database
          */
-        emptyDatabase: function() {
+        emptyDatabase: function () {
             $.ajax({
                 url: ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'oauth_debugger_empty_database',
-                    nonce: oauthDebug.nonce
+                    nonce: oauthDebug.nonce,
                 },
-                beforeSend: function() {
-                    $('.oauth-debugger-empty-database').prop('disabled', true).text(oauthDebug.i18n.processing || 'Processing...');
+                beforeSend: function () {
+                    $('.oauth-debugger-empty-database')
+                        .prop('disabled', true)
+                        .text(oauthDebug.i18n.processing || 'Processing...');
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         alert(response.data.message);
                         location.reload();
@@ -285,30 +313,37 @@
                         alert(response.data.message);
                     }
                 },
-                error: function() {
+                error: function () {
                     alert(oauthDebug.i18n.error || 'An error occurred.');
                 },
-                complete: function() {
-                    $('.oauth-debugger-empty-database').prop('disabled', false).html('<span class="dashicons dashicons-trash"></span> ' + (oauthDebug.i18n.emptyDatabase || 'Empty Database'));
-                }
+                complete: function () {
+                    $('.oauth-debugger-empty-database')
+                        .prop('disabled', false)
+                        .html(
+                            '<span class="dashicons dashicons-trash"></span> ' +
+                                (oauthDebug.i18n.emptyDatabase || 'Empty Database')
+                        );
+                },
             });
         },
 
         /**
          * Remove database
          */
-        removeDatabase: function() {
+        removeDatabase: function () {
             $.ajax({
                 url: ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'oauth_debugger_remove_database',
-                    nonce: oauthDebug.nonce
+                    nonce: oauthDebug.nonce,
                 },
-                beforeSend: function() {
-                    $('.oauth-debugger-remove-database').prop('disabled', true).text(oauthDebug.i18n.processing || 'Processing...');
+                beforeSend: function () {
+                    $('.oauth-debugger-remove-database')
+                        .prop('disabled', true)
+                        .text(oauthDebug.i18n.processing || 'Processing...');
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         alert(response.data.message);
                         location.reload();
@@ -316,30 +351,37 @@
                         alert(response.data.message);
                     }
                 },
-                error: function() {
+                error: function () {
                     alert(oauthDebug.i18n.error || 'An error occurred.');
                 },
-                complete: function() {
-                    $('.oauth-debugger-remove-database').prop('disabled', false).html('<span class="dashicons dashicons-warning"></span> ' + (oauthDebug.i18n.removeDatabase || 'Remove Database Tables'));
-                }
+                complete: function () {
+                    $('.oauth-debugger-remove-database')
+                        .prop('disabled', false)
+                        .html(
+                            '<span class="dashicons dashicons-warning"></span> ' +
+                                (oauthDebug.i18n.removeDatabase || 'Remove Database Tables')
+                        );
+                },
             });
         },
 
         /**
          * Reset plugin
          */
-        resetPlugin: function() {
+        resetPlugin: function () {
             $.ajax({
                 url: ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'oauth_debugger_reset_plugin',
-                    nonce: oauthDebug.nonce
+                    nonce: oauthDebug.nonce,
                 },
-                beforeSend: function() {
-                    $('.oauth-debugger-reset-plugin').prop('disabled', true).text(oauthDebug.i18n.processing || 'Processing...');
+                beforeSend: function () {
+                    $('.oauth-debugger-reset-plugin')
+                        .prop('disabled', true)
+                        .text(oauthDebug.i18n.processing || 'Processing...');
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         alert(response.data.message);
                         location.reload();
@@ -347,19 +389,23 @@
                         alert(response.data.message);
                     }
                 },
-                error: function() {
+                error: function () {
                     alert(oauthDebug.i18n.error || 'An error occurred.');
                 },
-                complete: function() {
-                    $('.oauth-debugger-reset-plugin').prop('disabled', false).html('<span class="dashicons dashicons-warning"></span> ' + (oauthDebug.i18n.resetPlugin || 'Reset All Plugin Data'));
-                }
+                complete: function () {
+                    $('.oauth-debugger-reset-plugin')
+                        .prop('disabled', false)
+                        .html(
+                            '<span class="dashicons dashicons-warning"></span> ' +
+                                (oauthDebug.i18n.resetPlugin || 'Reset All Plugin Data')
+                        );
+                },
             });
-        }
+        },
     };
 
     // Initialize on DOM ready
-    $(function() {
+    $(function () {
         OAuthDebugger.init();
     });
-
 })(jQuery);
