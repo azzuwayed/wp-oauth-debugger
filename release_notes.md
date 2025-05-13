@@ -1,6 +1,16 @@
+<<<<<<< Updated upstream
+
+# Release v1.1.4
+
+## Changes since v1.1.2
+
+- # Resolve merge conflicts and prepare for release
+
 # Release v1.1.3
 
 ## Changes since v1.1.2
+
+> > > > > > > Stashed changes
 
 ## Build Information
 
